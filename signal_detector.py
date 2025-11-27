@@ -240,16 +240,35 @@ class SignalDetector:
     
     def load_history(self, filepath: str = 'signals_history.json') -> None:
         """
-        从文件加载信号历史
+        从文件加载信号历史，并恢复最后一个开仓信号状态
         
         Args:
             filepath: 文件路径
         """
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
-                self.signals_history = json.load(f)
+                history_data = json.load(f)
+                self.signals_history = history_data
+                
+                # 恢复最后一个开仓信号状态（从最新到最旧遍历）
+                for signal in reversed(history_data):
+                    signal_type_str = signal.get('signal_type')
+                    # 查找最后一个开仓信号（LONG或SHORT）
+                    if signal_type_str in ['做多', '做空']:
+                        # 恢复信号，将字符串类型转换回Enum
+                        signal_copy = signal.copy()
+                        if signal_type_str == '做多':
+                            signal_copy['signal_type'] = SignalType.LONG
+                        elif signal_type_str == '做空':
+                            signal_copy['signal_type'] = SignalType.SHORT
+                        
+                        self.last_signal = signal_copy
+                        print(f"✅ 已从历史恢复持仓状态: {signal_type_str} @ {signal.get('timestamp', 'N/A')}")
+                        break
+                
         except FileNotFoundError:
             self.signals_history = []
+            print("ℹ️ 未找到历史文件，从空白状态开始")
         except Exception as e:
             print(f"❌ 加载历史失败: {e}")
             self.signals_history = []
