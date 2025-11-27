@@ -1,0 +1,72 @@
+name: ETH交易信号监控
+
+on:
+  # 定时触发 - 每30分钟运行一次（避免超出免费额度）
+  schedule:
+    - cron: '*/30 * * * *'  # 每30分钟
+    # 可选其他频率：
+    # - cron: '*/15 * * * *' # 每15分钟（会超免费额度）
+    # - cron: '0 * * * *'    # 每小时
+    # - cron: '0 */4 * * *'  # 每4小时
+  
+  # 手动触发
+  workflow_dispatch:
+  
+  # Push时也触发（可选，用于测试）
+  # push:
+  #   branches: [ main ]
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+    
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+    
+    - name: 安装依赖
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: 创建配置文件
+      run: |
+        cat > config.json << EOF
+        {
+          "proxy": "",
+          "symbol": "ETH/USDT",
+          "timeframe": "15m",
+          "check_interval": 60,
+          "boll": {
+            "period": 20,
+            "std_dev": 2.0
+          },
+          "rsi": {
+            "period": 14,
+            "overbought": 70,
+            "oversold": 30
+          },
+          "telegram": {
+            "bot_token": "${{ secrets.TELEGRAM_BOT_TOKEN }}",
+            "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}"
+          }
+        }
+        EOF
+    
+    - name: 运行监控（单次检查）
+      run: |
+        python run_once.py
+      
+    - name: 上传信号历史（如果有）
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: signals-history
+        path: signals_history.json
+        retention-days: 30
