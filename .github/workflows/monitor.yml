@@ -1,9 +1,9 @@
 name: ETH交易信号监控
 
 on:
-  # 定时触发 - 每30分钟运行一次（避免超出免费额度）
+  # 定时触发 - 每小时运行一次（与1小时K线周期一致）
   schedule:
-    - cron: '*/30 * * * *'  # 每30分钟
+    - cron: '0 * * * *'  # 每小时整点
     # 可选其他频率：
     # - cron: '*/15 * * * *' # 每15分钟（会超免费额度）
     # - cron: '0 * * * *'    # 每小时
@@ -41,7 +41,7 @@ jobs:
         {
           "proxy": "",
           "symbol": "ETH/USDT",
-          "timeframe": "15m",
+          "timeframe": "1h",
           "check_interval": 60,
           "boll": {
             "period": 20,
