@@ -9,12 +9,13 @@ from typing import Dict, List, Optional
 class DataFetcher:
     """交易所数据获取器"""
     
-    def __init__(self, proxy_url: str = None):
+    def __init__(self, proxy_url: str = None, exchange_id: str = 'binance'):
         """
         初始化数据获取器
         
         Args:
             proxy_url: 代理地址，如 'http://127.0.0.1:10808'
+            exchange_id: 交易所ID，如 'binance', 'binanceus', 'okx', 'bybit'等
         """
         self.proxies = None
         if proxy_url:
@@ -23,8 +24,9 @@ class DataFetcher:
                 'https': proxy_url
             }
         
-        # 初始化币安交易所
-        self.exchange = ccxt.binance({
+        # 初始化交易所
+        exchange_class = getattr(ccxt, exchange_id)
+        self.exchange = exchange_class({
             'proxies': self.proxies,
             'timeout': 30000,
             'enableRateLimit': True

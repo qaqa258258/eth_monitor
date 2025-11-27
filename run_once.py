@@ -44,7 +44,8 @@ def run_once():
     print()
     
     # 初始化模块（GitHub Actions服务器在国外，不需要代理）
-    data_fetcher = DataFetcher(proxy_url=None)  # 不使用代理
+    # 使用OKX交易所，避免币安的地理限制
+    data_fetcher = DataFetcher(proxy_url=None, exchange_id='okx')
     signal_detector = SignalDetector(
         rsi_overbought=config['rsi']['overbought'],
         rsi_oversold=config['rsi']['oversold'],
