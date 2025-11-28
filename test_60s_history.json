@@ -1,0 +1,170 @@
+[
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:46:45",
+    "signal_type": "做多",
+    "strength": 85.09,
+    "reason": "触及下轨($2850.00 <= $2900.00) + RSI参考: 22.0",
+    "indicators": {
+      "price": 2850,
+      "rsi": 22,
+      "boll_upper": 3200,
+      "boll_middle": 3050,
+      "boll_lower": 2900
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:46:52",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 2920,
+      "rsi": 35,
+      "boll_upper": 3180,
+      "boll_middle": 3030,
+      "boll_lower": 2880
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:46:57",
+    "signal_type": "平多",
+    "strength": 50,
+    "reason": "价格回到中轨($3030.00 >= $3020.00) + RSI参考: 48.0",
+    "indicators": {
+      "price": 3030,
+      "rsi": 48,
+      "boll_upper": 3170,
+      "boll_middle": 3020,
+      "boll_lower": 2870
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:04",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 3050,
+      "rsi": 52,
+      "boll_upper": 3160,
+      "boll_middle": 3020,
+      "boll_lower": 2880
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:09",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 3130,
+      "rsi": 65,
+      "boll_upper": 3200,
+      "boll_middle": 3050,
+      "boll_lower": 2900
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:14",
+    "signal_type": "做空",
+    "strength": 50.0,
+    "reason": "触及上轨($3200.00 >= $3200.00) + RSI参考: 73.0",
+    "indicators": {
+      "price": 3200,
+      "rsi": 73,
+      "boll_upper": 3200,
+      "boll_middle": 3050,
+      "boll_lower": 2900
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:21",
+    "signal_type": "做空",
+    "strength": 74.62,
+    "reason": "触及上轨($3250.00 >= $3210.00) + RSI参考: 79.0",
+    "indicators": {
+      "price": 3250,
+      "rsi": 79,
+      "boll_upper": 3210,
+      "boll_middle": 3060,
+      "boll_lower": 2910
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:28",
+    "signal_type": "平空",
+    "strength": 50,
+    "reason": "价格回到中轨($3060.00 <= $3060.00) + RSI参考: 51.0",
+    "indicators": {
+      "price": 3060,
+      "rsi": 51,
+      "boll_upper": 3220,
+      "boll_middle": 3060,
+      "boll_lower": 2900
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:35",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 3070,
+      "rsi": 49,
+      "boll_upper": 3210,
+      "boll_middle": 3055,
+      "boll_lower": 2900
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:40",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 2890,
+      "rsi": 28,
+      "boll_upper": 3200,
+      "boll_middle": 3040,
+      "boll_lower": 2880
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:45",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 3080,
+      "rsi": 58,
+      "boll_upper": 3195,
+      "boll_middle": 3035,
+      "boll_lower": 2875
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timestamp": "2025-11-28 10:47:50",
+    "signal_type": "中性",
+    "strength": 0,
+    "reason": "无明显信号",
+    "indicators": {
+      "price": 3040,
+      "rsi": 50,
+      "boll_upper": 3190,
+      "boll_middle": 3030,
+      "boll_lower": 2870
+    }
+  }
+]

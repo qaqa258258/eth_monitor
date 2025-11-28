@@ -102,12 +102,18 @@ def run_once():
         print(f"💪 信号强度: {signal['strength']:.1f}%")
         print(f"📝 原因: {signal['reason']}")
         
-        # 发送告警
+        # 发送告警（仅对交易信号推送，中性信号不推送）
         signal_detector.send_alert(
             symbol=config['symbol'],
             signal=signal,
             via_telegram=True,
             via_console=True
+        )
+        
+        # 记录信号到历史（包括中性信号）
+        signal_detector.record_signal(
+            symbol=config['symbol'],
+            signal=signal
         )
         
         # 保存信号历史

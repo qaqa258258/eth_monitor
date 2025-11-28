@@ -53,11 +53,12 @@ class SignalDetector:
         """
         检测交易信号
         
-        策略说明:
-        - 做多信号: RSI < 30 且价格 <= 下轨
-        - 做空信号: RSI > 70 且价格 >= 上轨
-        - 平多信号: 持有多单 且 (RSI > 50 或 价格 >= 中轨)
-        - 平空信号: 持有空单 且 (RSI < 50 或 价格 <= 中轨)
+        策略说明（仅基于BOLL布林带）:
+        - 做多信号: 价格 <= 下轨
+        - 做空信号: 价格 >= 上轨
+        - 平多信号: 持有多单 且 价格 >= 中轨
+        - 平空信号: 持有空单 且 价格 <= 中轨
+        - RSI仅作为参考信息，不作为触发条件
         
         Args:
             indicators: 指标字典，包含close, rsi, boll_upper, boll_middle, boll_lower
@@ -83,35 +84,41 @@ class SignalDetector:
         strength = 0  # 信号强度 0-100
         reasons = []
         
-        # 检测做多信号
-        if rsi < self.rsi_oversold and close <= boll_lower:
+        # 检测做多信号（仅基于BOLL）
+        if close <= boll_lower:
             signal_type = SignalType.LONG
-            strength = min(100, (self.rsi_oversold - rsi) * 3 + 
-                         ((boll_lower - close) / close * 100) * 10)
-            reasons.append(f"RSI超卖({rsi:.1f})")
+            # 计算信号强度：价格低于下轨的程度
+            distance_pct = ((boll_lower - close) / close * 100)
+            strength = min(100, distance_pct * 20 + 50)  # 基础50分，距离越远强度越高
             reasons.append(f"触及下轨(${close:.2f} <= ${boll_lower:.2f})")
+            reasons.append(f"RSI参考: {rsi:.1f}")
         
-        # 检测做空信号
-        elif rsi > self.rsi_overbought and close >= boll_upper:
+        # 检测做空信号（仅基于BOLL）
+        elif close >= boll_upper:
             signal_type = SignalType.SHORT
-            strength = min(100, (rsi - self.rsi_overbought) * 3 + 
-                         ((close - boll_upper) / close * 100) * 10)
-            reasons.append(f"RSI超买({rsi:.1f})")
+            # 计算信号强度：价格高于上轨的程度
+            distance_pct = ((close - boll_upper) / close * 100)
+            strength = min(100, distance_pct * 20 + 50)  # 基础50分，距离越远强度越高
             reasons.append(f"触及上轨(${close:.2f} >= ${boll_upper:.2f})")
+            reasons.append(f"RSI参考: {rsi:.1f}")
         
         # 检测平仓信号（基于上一个信号）
         elif self.last_signal:
             if self.last_signal['signal_type'] == SignalType.LONG:
-                if rsi > 50 or close >= boll_middle:
+                # 平多：价格回到中轨或以上
+                if close >= boll_middle:
                     signal_type = SignalType.EXIT_LONG
                     strength = 50
-                    reasons.append(f"RSI回到中性区({rsi:.1f})" if rsi > 50 else f"价格回到中轨(${close:.2f})")
+                    reasons.append(f"价格回到中轨(${close:.2f} >= ${boll_middle:.2f})")
+                    reasons.append(f"RSI参考: {rsi:.1f}")
             
             elif self.last_signal['signal_type'] == SignalType.SHORT:
-                if rsi < 50 or close <= boll_middle:
+                # 平空：价格回到中轨或以下
+                if close <= boll_middle:
                     signal_type = SignalType.EXIT_SHORT
                     strength = 50
-                    reasons.append(f"RSI回到中性区({rsi:.1f})" if rsi < 50 else f"价格回到中轨(${close:.2f})")
+                    reasons.append(f"价格回到中轨(${close:.2f} <= ${boll_middle:.2f})")
+                    reasons.append(f"RSI参考: {rsi:.1f}")
         
         # 构建信号字典
         signal = {
@@ -149,8 +156,14 @@ class SignalDetector:
         """
         signal_type = signal['signal_type']
         
-        # 仅对开仓和平仓信号发送告警
+        # 仅对开仓和平仓信号发送告警（中性信号不推送）
         if signal_type == SignalType.NEUTRAL:
+            if via_console:
+                print(f"\n{'='*60}")
+                print(f"⚪ 中性信号 - 无操作建议")
+                print(f"当前价格: ${signal['indicators']['price']:.2f}")
+                print(f"RSI: {signal['indicators']['rsi']:.2f}")
+                print('='*60)
             return
         
         # 构建消息
@@ -180,8 +193,16 @@ class SignalDetector:
         # Telegram推送
         if via_telegram and self.telegram_token and self.telegram_chat_id:
             self._send_telegram(message)
+    
+    def record_signal(self, symbol: str, signal: Dict) -> None:
+        """
+        记录信号到历史（包括中性信号）
         
-        # 保存到历史
+        Args:
+            symbol: 交易对
+            signal: 信号字典
+        """
+        # 保存到历史（包括中性信号，用于调试和状态追踪）
         self.signals_history.append({
             'symbol': symbol,
             **signal
@@ -198,6 +219,7 @@ class SignalDetector:
             发送成功返回True
         """
         if not self.telegram_token or not self.telegram_chat_id:
+            print("[Telegram配置缺失] bot_token 或 chat_id 未设置")
             return False
         
         url = f"https://api.telegram.org/bot{self.telegram_token}/sendMessage"
@@ -207,15 +229,30 @@ class SignalDetector:
                 url,
                 json={
                     "chat_id": self.telegram_chat_id,
-                    "text": message,
-                    "parse_mode": "HTML"
+                    "text": message
                 },
                 proxies=self.proxies,
-                timeout=5
+                timeout=10
             )
-            return response.status_code == 200
+            
+            if response.status_code == 200:
+                print("✅ [Telegram发送成功]")
+                return True
+            else:
+                print(f"❌ [Telegram发送失败] HTTP {response.status_code}")
+                print(f"   响应内容: {response.text}")
+                return False
+                
+        except requests.exceptions.ProxyError as e:
+            print(f"❌ [Telegram发送失败] 代理错误: {e}")
+            print("   提示: 请检查代理设置是否正确")
+            return False
+        except requests.exceptions.Timeout as e:
+            print(f"❌ [Telegram发送失败] 连接超时: {e}")
+            print("   提示: 请检查网络连接和代理")
+            return False
         except Exception as e:
-            print(f"[Telegram发送失败] {e}")
+            print(f"❌ [Telegram发送失败] {type(e).__name__}: {e}")
             return False
     
     def save_history(self, filepath: str = 'signals_history.json') -> None:
@@ -230,7 +267,9 @@ class SignalDetector:
             history_to_save = []
             for signal in self.signals_history:
                 signal_copy = signal.copy()
-                signal_copy['signal_type'] = signal_copy['signal_type'].value
+                # 检查signal_type是否已经是字符串
+                if hasattr(signal_copy['signal_type'], 'value'):
+                    signal_copy['signal_type'] = signal_copy['signal_type'].value
                 history_to_save.append(signal_copy)
             
             with open(filepath, 'w', encoding='utf-8') as f:

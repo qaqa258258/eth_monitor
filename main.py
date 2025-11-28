@@ -41,10 +41,10 @@ def print_header(config: dict):
     print(f"🌐 代理: {config['proxy']}")
     print("=" * 80)
     print("\n🔍 策略说明:")
-    print("  🟢 做多信号: RSI < 30 且价格触及下轨")
-    print("  🔴 做空信号: RSI > 70 且价格触及上轨")
-    print("  ⬆️ 平多信号: RSI > 50 或价格回到中轨")
-    print("  ⬇️ 平空信号: RSI < 50 或价格回到中轨")
+    print("  🟢 做多信号: 价格触及或跌破下轨 (RSI仅供参考)")
+    print("  🔴 做空信号: 价格触及或突破上轨 (RSI仅供参考)")
+    print("  ⬆️ 平多信号: 持有多单且价格回到中轨以上")
+    print("  ⬇️ 平空信号: 持有空单且价格回到中轨以下")
     print("=" * 80)
     print()
 
@@ -105,13 +105,16 @@ def run_monitor():
         proxy_url=config['proxy']
     )
     
+    # 加载历史信号(恢复持仓状态)
+    signal_detector.load_history()
+    
     # 测试连接
     print("🔌 正在连接交易所...")
     if not data_fetcher.test_connection():
-        print("❌ 无法连接到交易所，请检查网络和代理设置")
+        print("❌ 无法连接到交易所,请检查网络和代理设置")
         sys.exit(1)
     
-    print("✅ 连接成功，开始监控...\n")
+    print("✅ 连接成功,开始监控...\n")
     
     # 主循环
     loop_count = 0
@@ -128,7 +131,7 @@ def run_monitor():
                 )
                 
                 if df is None:
-                    print("⚠️ 获取数据失败，等待下次刷新...")
+                    print("⚠️ 获取数据失败,等待下次刷新...")
                     time.sleep(config['check_interval'])
                     continue
                 
@@ -149,12 +152,18 @@ def run_monitor():
                 # 打印状态
                 print_status(config['symbol'], indicators, signal)
                 
-                # 发送告警（仅在有信号时）
+                # 发送告警(仅在有信号时)
                 signal_detector.send_alert(
                     symbol=config['symbol'],
                     signal=signal,
                     via_telegram=True,
                     via_console=False  # 已经在上面打印了
+                )
+                
+                # 记录信号到历史(包括中性信号)
+                signal_detector.record_signal(
+                    symbol=config['symbol'],
+                    signal=signal
                 )
                 
                 # 每10次循环保存一次历史
